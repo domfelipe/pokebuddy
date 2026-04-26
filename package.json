@@ -1,0 +1,50 @@
+{
+  "name": "pokebuddy",
+  "version": "0.1.0",
+  "description": "Tiny terminal companions you can poke while you code.",
+  "type": "module",
+  "bin": {
+    "pokebuddy": "./bin/pokebuddy.js"
+  },
+  "scripts": {
+    "start": "node ./bin/pokebuddy.js",
+    "dev": "node ./bin/pokebuddy.js",
+    "test": "node --test",
+    "lint": "node --check ./bin/pokebuddy.js && node --check ./src/*.js",
+    "prepare:local": "npm link"
+  },
+  "keywords": [
+    "cli",
+    "terminal",
+    "developer-tools",
+    "virtual-pet",
+    "coding-companion",
+    "git",
+    "ascii-art",
+    "ansi",
+    "open-source",
+    "devtools",
+    "offline-first"
+  ],
+  "author": "Felipe Domingues",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src",
+    "assets/ascii",
+    "README.md",
+    "LEGAL.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pokebuddy-cli/pokebuddy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pokebuddy-cli/pokebuddy/issues"
+  },
+  "homepage": "https://github.com/pokebuddy-cli/pokebuddy#readme"
+}

@@ -1,0 +1,6 @@
+.github/
+docs/
+test/
+coverage/
+.DS_Store
+*.log

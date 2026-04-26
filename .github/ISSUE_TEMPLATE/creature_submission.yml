@@ -1,0 +1,40 @@
+name: Companion submission
+description: Propose an original PokeBuddy companion
+title: "companion: "
+labels: [companion]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Companion name
+      placeholder: "LintFox"
+    validations:
+      required: true
+  - type: input
+    id: type
+    attributes:
+      label: Type
+      placeholder: "Quality / Speed"
+  - type: dropdown
+    id: rarity
+    attributes:
+      label: Rarity
+      options:
+        - Uncommon
+        - Rare
+        - Epic
+        - Mythic
+  - type: textarea
+    id: concept
+    attributes:
+      label: Concept
+      description: Describe the companion and why it belongs in PokeBuddy.
+    validations:
+      required: true
+  - type: checkboxes
+    id: originality
+    attributes:
+      label: Originality confirmation
+      options:
+        - label: This companion is original and not based on protected third-party characters or assets.
+          required: true

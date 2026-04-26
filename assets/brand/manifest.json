@@ -1,0 +1,14 @@
+{
+  "project": "PokeBuddy CLI",
+  "assets": [
+    "assets/brand/pokebuddy_cli_brand_identity_guide.png",
+    "assets/brand/pokebuddy_cli_companion_guide_poster.png",
+    "assets/brand/pokebuddy_cli_terminal_companions_in_neon_style.png",
+    "assets/brand/pokebuddy_cli_launch_poster_and_merch.png",
+    "assets/brand/pokebuddy_creature_dex_terminal_ui.png",
+    "assets/brand/pokebuddy_cli_neon_terminal_companions.png",
+    "assets/brand/pokebuddy_cli_brand_kit_showcase.png",
+    "assets/brand/pokebuddy_terminal_companions_for_coders.png"
+  ],
+  "note": "Generated concept art assets for README, launch, brand direction and community visuals."
+}
