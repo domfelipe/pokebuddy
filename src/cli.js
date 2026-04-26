@@ -6,6 +6,8 @@ import { nextCreature } from './hatch.js';
 import { addEvent, ensureCompanionState, loadState, resetState, saveState } from './state.js';
 import { banner, boxed, compactCreatureLine, creatureCard, dex, helpText, legalText, listCompanions, statusView } from './render.js';
 import { paint, strong, dim } from './ansi.js';
+import { applyXp, XP_REWARDS } from './progression.js';
+import { cancelCurrentTask, completeCurrentTask, getCurrentTask, recentTasks, startTask } from './tasks.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(fs.readFileSync(path.join(dirname, '..', 'package.json'), 'utf8'));
@@ -26,6 +28,8 @@ export async function run(argv) {
       return interact('poke', args);
     case 'feed':
       return interact('feed', args);
+    case 'task':
+      return task(args);
     case 'status':
       return output(statusView(loadState()));
     case 'rename':
@@ -145,6 +149,73 @@ function interact(kind, args) {
     `${paint(reaction, creature.color)}\n\n` +
     `Energy: ${entry.energy}%   Mood: ${paint(entry.mood, 'green')}   XP: ${entry.xp}   Level: ${entry.level}`
   );
+}
+
+function task(args) {
+  const [subcommand = 'current', ...rest] = args;
+  const state = loadState();
+
+  if (subcommand === 'start') {
+    const title = rest.join(' ').trim();
+    if (!title) return output(`Usage: ${strong('pokebuddy task start "task title"', 'green')}`, 1);
+    const created = startTask(state, title);
+    const reward = awardActiveXp(state, 'task_started');
+    saveState(state);
+    return output(`${boxed(`Task started: ${created.title}`, 'green')}\n${reward}`);
+  }
+
+  if (subcommand === 'done') {
+    const completed = completeCurrentTask(state);
+    if (!completed) return output(`${paint('No active task found.', 'yellow')} Start one with ${strong('pokebuddy task start', 'green')}.`, 1);
+    const reward = awardActiveXp(state, 'task_done');
+    saveState(state);
+    return output(`${boxed(`Task completed: ${completed.title}`, 'green')}\n${reward}`);
+  }
+
+  if (subcommand === 'cancel') {
+    const cancelled = cancelCurrentTask(state);
+    if (!cancelled) return output(`${paint('No active task found.', 'yellow')}`, 1);
+    const reward = awardActiveXp(state, 'task_cancelled');
+    saveState(state);
+    return output(`${boxed(`Task cancelled: ${cancelled.title}`, 'yellow')}\n${reward}`);
+  }
+
+  if (subcommand === 'list') {
+    return output(taskList(state));
+  }
+
+  if (subcommand === 'current') {
+    const current = getCurrentTask(state);
+    if (!current) return output(`${paint('No active task.', 'yellow')} Start one with ${strong('pokebuddy task start "task title"', 'green')}.`);
+    return output(`${strong('Current task', 'green')}\n${taskLine(current)}`);
+  }
+
+  return output(`Unknown task command: ${paint(subcommand, 'red')}\n\nUsage: ${strong('pokebuddy task <start|done|cancel|current|list>', 'green')}`, 1);
+}
+
+function awardActiveXp(state, eventType) {
+  const amount = XP_REWARDS[eventType] ?? 0;
+  if (amount <= 0) return dim('No XP awarded.');
+
+  const activeId = state.active ?? Object.keys(state.companions)[0];
+  const creature = activeId ? getCreatureByName(activeId) : creatures[0];
+  const entry = ensureCompanionState(state, creature);
+  const result = applyXp(entry, amount);
+  addEvent(state, 'xp_awarded', { id: creature.id, eventType, amount });
+
+  const levelNote = result.leveledUp ? ` ${paint(`LEVEL UP → ${entry.level}`, 'yellow')}` : '';
+  return `${paint(creature.name, creature.color)} gained ${strong(`+${amount} XP`, 'green')}.${levelNote}`;
+}
+
+function taskList(state) {
+  const tasks = recentTasks(state, 10);
+  if (tasks.length === 0) return `${paint('No tasks yet.', 'yellow')} Start one with ${strong('pokebuddy task start', 'green')}.`;
+  return `${strong('$ pokebuddy task list', 'green')}\n${tasks.map(taskLine).join('\n')}`;
+}
+
+function taskLine(item) {
+  const marker = item.status === 'active' ? paint('●', 'green') : item.status === 'done' ? paint('✓', 'green') : paint('×', 'yellow');
+  return ` ${marker} ${item.title} ${dim(`[${item.status}]`)}`;
 }
 
 function rename(args) {
