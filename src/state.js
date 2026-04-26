@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const STATE_DIR = path.join(os.homedir(), '.pokebuddy');
 const STATE_FILE = path.join(STATE_DIR, 'state.json');
+const CURRENT_SCHEMA_VERSION = 2;
 
 export function getStatePath() {
   return STATE_FILE;
@@ -15,7 +16,7 @@ export function loadState() {
   }
 
   try {
-    return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+    return migrateState(JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')));
   } catch {
     return createInitialState();
   }
@@ -23,7 +24,7 @@ export function loadState() {
 
 export function saveState(state) {
   fs.mkdirSync(STATE_DIR, { recursive: true });
-  fs.writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(STATE_FILE, `${JSON.stringify(migrateState(state), null, 2)}\n`, 'utf8');
 }
 
 export function resetState() {
@@ -34,15 +35,31 @@ export function resetState() {
 
 export function createInitialState() {
   return {
-    schemaVersion: 1,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     createdAt: new Date().toISOString(),
     active: null,
     companions: {},
-    events: []
+    events: [],
+    tasks: [],
+    currentTaskId: null
   };
 }
 
+export function migrateState(state) {
+  const next = state && typeof state === 'object' ? state : createInitialState();
+  next.schemaVersion = CURRENT_SCHEMA_VERSION;
+  next.createdAt ??= new Date().toISOString();
+  next.active ??= null;
+  next.companions ??= {};
+  next.events ??= [];
+  next.tasks ??= [];
+  next.currentTaskId ??= null;
+  return next;
+}
+
 export function ensureCompanionState(state, creature) {
+  migrateState(state);
+
   if (!state.companions[creature.id]) {
     state.companions[creature.id] = {
       id: creature.id,
@@ -65,10 +82,11 @@ export function ensureCompanionState(state, creature) {
 }
 
 export function addEvent(state, type, payload = {}) {
+  migrateState(state);
   state.events.unshift({
     type,
     payload,
     at: new Date().toISOString()
   });
-  state.events = state.events.slice(0, 30);
+  state.events = state.events.slice(0, 50);
 }
