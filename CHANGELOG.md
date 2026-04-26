@@ -2,6 +2,10 @@
 
 All notable changes to PokeBuddy CLI will be documented here.
 
+## Unreleased
+
+- Prepare v0.2.0 XP and task progression engine.
+
 ## 0.1.0
 
 Initial public alpha.
